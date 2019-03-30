@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 		printf("Resultado: conta não encontrada!\n");
 	else {
 		printf("/*****************************************/\n");
-		printf("/           BEM VINDO AO BANCO POC        /\n");
+		printf("/           BEM VINDO AO BANCO            /\n");
 		printf("/*****************************************/\n");
 		printf("Conta: %s\n\n", numconta);
 		printOpcoes();

@@ -11,25 +11,27 @@ typedef struct
 	char idConta[10];
 	double saldo;
 	double senha;
+	double id;
 } CONTA;
 
-char *contaAtual;
+CONTA contas[MAX_CONTAS];
+int contaatual = 0;
 
+char *contaAtual;
+double numconta;
 double valorsaque;
 
 double *verifica_conta(char **idConta)
 {
-	static CONTA contas[MAX_CONTAS] = {
-		{"1-1", 1520.63, 1},
-		{"1-2", 63.2, 1}};
 	static double ok = 1.0;
 	static double erro = -1.0;
 	static double valor = 1000.20;
 	int i;
+	double id;
 	float l;
 	char pd[20];
 
-	sscanf((*idConta),"%s %f", pd, &l);
+	sscanf((*idConta), "%s %f", pd, &l);
 
 	if (strcmp(pd, "saldo") == 0)
 	{
@@ -41,13 +43,17 @@ double *verifica_conta(char **idConta)
 			}
 		}
 		return &erro;
-	} else if(strcmp(pd, "saque") == 0) {
-		
+	}
+	else if (strcmp(pd, "saque") == 0)
+	{
+
 		sscanf(*idConta, "saque %lf", &valorsaque);
 
 		return &(valorsaque);
-	} else if(strcmp(pd, "confirmasaque") == 0) {
-		
+	}
+	else if (strcmp(pd, "confirmasaque") == 0)
+	{
+
 		for (i = 0; i < MAX_CONTAS; i++)
 		{
 			if (strcmp(contas[i].idConta, contaAtual) == 0)
@@ -60,13 +66,56 @@ double *verifica_conta(char **idConta)
 			}
 		}
 		return &(erro);
-	} else if(strcmp(pd, "deposito") == 0) {
-		
+	}
+	else if (strcmp(pd, "deposito") == 0)
+	{
+
 		sscanf(*idConta, "deposito %lf", &valorsaque);
 
 		return &(valorsaque);
-	} else if(strcmp(pd, "confirmadeposito") == 0) {
-		
+	}
+	else if (strcmp(pd, "abertura") == 0)
+	{
+		return &(ok);
+	}
+	else if (strcmp(pd, "id") == 0)
+	{
+		sscanf(*idConta, "id %lf", &valorsaque);
+
+		i = contaatual;
+		numconta = 1.1;
+		if (contaatual == 0)
+		{
+			contas[contaatual].id = valorsaque;
+			strcpy(contas[0].idConta, "1.1");
+			contas[0].saldo = 0;
+			contas[0].senha = 1234;
+		}
+		else
+		{
+			for (int j = 0; j < MAX_CONTAS; j++)
+			{
+				if (contas[j].id == valorsaque)
+				{
+					return &(erro);
+				}
+			}
+
+			sscanf(contas[contaatual - 1].idConta, "%lf", &numconta);
+			numconta = numconta + 0.1;
+			sprintf(contas[contaatual].idConta, "%.1lf", numconta);
+
+			contas[contaatual].id = valorsaque;
+			contas[contaatual].saldo = 0;
+			contas[contaatual].senha = 1234.0;
+		}
+		contaatual++;
+
+		return &(numconta);
+	}
+	else if (strcmp(pd, "confirmadeposito") == 0)
+	{
+
 		for (i = 0; i < MAX_CONTAS; i++)
 		{
 			if (strcmp(contas[i].idConta, contaAtual) == 0)
@@ -79,7 +128,13 @@ double *verifica_conta(char **idConta)
 			}
 		}
 		return &(erro);
-	} else {
+	}
+	else if (strcmp(pd, "agencia") == 0)
+	{
+		return &(ok);
+	}
+	else
+	{
 		contaAtual = *idConta;
 		for (i = 0; i < MAX_CONTAS; i++)
 		{
