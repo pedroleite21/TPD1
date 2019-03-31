@@ -10,6 +10,13 @@ void printOpcoes()
     printf("2 - Fechamento de conta         4 - Sair\n");
 }
 
+void printOpcoes2()
+{
+    printf("O que deseja fazer?\n\n");
+    printf("6 - Verificar Saldo   8 - Realizar Depósito\n");
+    printf("7 - Realizar Saque    4 - Sair    \n");
+}
+
 int main(int argc, char *argv[])
 {
     char *pd;
@@ -17,6 +24,7 @@ int main(int argc, char *argv[])
     double saldo;
     char *server;
     float id;
+    float numconta;
     char valor[30];
     int opcao;
 
@@ -130,11 +138,58 @@ int main(int argc, char *argv[])
                 }
                 break;
             case 3:
+                printf("Digite numero da conta:\t");
+                scanf("%f", &id);
+                numconta = id;
+                sprintf(valor, "%.1f", id);
+                pd = valor;
+                stat = callrpc(argv[1], VCPROG, VCVERS, VC,
+                               (xdrproc_t)xdr_wrapstring, (char *)&pd,
+                               (xdrproc_t)xdr_double, (char *)&saldo);
+
+                if (stat != 0)
+                {
+                    clnt_perrno(stat);
+                    printf("\n");
+                    return 1;
+                }
+                if (saldo < 0.0)
+                {
+                    printf("Resultado: conta não encontrada!\n");
+                    exit(1);
+                }
+                else
+                {
+                    printf("\n\nConta: %.1f\n\n", numconta);
+                    printOpcoes2();
+                }
                 break;
             case 4:
                 exit(1);
             case 5:
                 printOpcoes();
+                break;
+            case 6:
+                printf("Aguarde...\n");
+                pd = "saldo 10.23";
+                stat = callrpc(server, VCPROG, VCVERS, VC,
+                               (xdrproc_t)xdr_wrapstring, (char *)&pd,
+                               (xdrproc_t)xdr_double, (char *)&saldo);
+
+                if (saldo >= 0.0)
+                {
+                    printf("Seu saldo: R$ %.2f\n\n", saldo);
+
+                    printf("Deseja realizar outra operaçao?\nSe sim, digite 5. Se deseja sair, digite 4.\n");
+                }
+                else
+                {
+                    printf("Oops... algum erro se deu por aqui");
+                }
+                break;
+            case 7:
+                break;
+            case 8:
                 break;
             }
         }
