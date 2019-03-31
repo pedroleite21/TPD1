@@ -14,12 +14,13 @@ typedef struct
 	double id;
 } CONTA;
 
-CONTA contas[MAX_CONTAS];
+static CONTA contas[MAX_CONTAS];
 int contaatual = 0;
 
 char *contaAtual;
 double numconta;
 double valorsaque;
+double contacanelar;
 
 double *verifica_conta(char **idConta)
 {
@@ -58,7 +59,7 @@ double *verifica_conta(char **idConta)
 		{
 			if (strcmp(contas[i].idConta, contaAtual) == 0)
 			{
-				if (((contas[i].saldo - valorsaque) > 0.0) && (l == contas[i].senha))
+				if (((contas[i].saldo - valorsaque) >= 0.0) && (l == contas[i].senha))
 				{
 					contas[i].saldo = contas[i].saldo - valorsaque;
 					return &(contas[i].saldo);
@@ -112,6 +113,37 @@ double *verifica_conta(char **idConta)
 		contaatual++;
 
 		return &(numconta);
+	}
+	else if (strcmp(pd, "cancela") == 0)
+	{
+		sscanf(*idConta, "cancela %lf", &contacanelar);
+
+		for (int j = 0; j < MAX_CONTAS; j++)
+		{
+			if (contas[j].id == contacanelar)
+			{
+				sscanf(contas[j].idConta, "%lf", &numconta);
+				return &(numconta);
+			}
+		}
+
+		return &(erro);
+	}
+	else if(strcmp(pd, "concancela") == 0) 
+	{
+		for (int j = 0; j < MAX_CONTAS; j++)
+		{
+			if (contas[j].id == contacanelar) {
+				contas[j].id = 9898.00;
+				strcpy(contas[j].idConta, "XXXXXX");
+				contas[j].saldo = 98989819819.00;
+				contas[j].senha = 9898.00;
+
+				return &(contas[j].saldo);
+			}
+		}
+
+		return &(erro);
 	}
 	else if (strcmp(pd, "confirmadeposito") == 0)
 	{

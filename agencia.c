@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
 
                 if (saldo > 0.0)
                 {
-                    printf("Digite de identificacao:\t");
+                    printf("Digite numero de identificacao:\t");
                     scanf("%f", &id);
 
                     sprintf(valor, "id %.1f", id);
@@ -83,6 +83,51 @@ int main(int argc, char *argv[])
                 }
                 break;
             case 2:
+                printf("Digite numero de identificacao:\t");
+                scanf("%f", &id);
+
+                sprintf(valor, "cancela %.1f", id);
+                pd = valor;
+                stat = callrpc(argv[1], VCPROG, VCVERS, VC,
+                               (xdrproc_t)xdr_wrapstring, (char *)&pd,
+                               (xdrproc_t)xdr_double, (char *)&saldo);
+
+                if (saldo > 0.0)
+                {
+                    printf("Conta: %.1f\n", saldo);
+
+                    printf("DESEJA CANCELAR?\n1 - Sim\t\t0 - Nao\n");
+                    scanf("%f", &id);
+
+                    if (id > 0)
+                    {
+                        sprintf(valor, "concancela %.1f", saldo);
+                        pd = valor;
+                        stat = callrpc(argv[1], VCPROG, VCVERS, VC,
+                                       (xdrproc_t)xdr_wrapstring, (char *)&pd,
+                                       (xdrproc_t)xdr_double, (char *)&saldo);
+                        if (saldo > 0.0)
+                        {
+                            printf("Cancelamento concluido \n\n\n");
+                            printOpcoes();
+                            break;
+                        }
+                        else
+                        {
+                            printf("Ops... encontramos algum problema no sistema");
+                            exit(1);
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    printf("Nao conseguimos encontrar a conta");
+                    exit(1);
+                }
                 break;
             case 3:
                 break;
