@@ -188,8 +188,65 @@ int main(int argc, char *argv[])
                 }
                 break;
             case 7:
+                printf("Digite o valor desejado: ");
+                scanf("%f", &id);
+
+                sprintf(valor, "saque %.2f", id);
+
+                pd = valor;
+                stat = callrpc(server, VCPROG, VCVERS, VC,
+                               (xdrproc_t)xdr_wrapstring, (char *)&pd,
+                               (xdrproc_t)xdr_double, (char *)&saldo);
+
+                printf("Confirmar saque de: R$ %.2f?\nDigite a senha: ", saldo);
+                scanf("%f", &id);
+
+                sprintf(valor, "confirmasaque %.1f", id);
+                pd = valor;
+                stat = callrpc(server, VCPROG, VCVERS, VC,
+                               (xdrproc_t)xdr_wrapstring, (char *)&pd,
+                               (xdrproc_t)xdr_double, (char *)&saldo);
+
+                if (saldo > 0.0)
+                {
+                    printf("Ok! O seu dinheiro já tá saindo :)\n");
+                    printf("Deseja realizar outra operaçao?\nSe sim, digite 5. Se deseja sair, digite 4.\n");
+                }
+                else
+                {
+                    printf("Oops... algum erro se deu por aqui\n");
+                    exit(1);
+                }
                 break;
             case 8:
+                printf("Digite o valor desejado: ");
+                scanf("%f", &id);
+
+                sprintf(valor, "deposito %.2f", id);
+                pd = valor;
+                stat = callrpc(server, VCPROG, VCVERS, VC,
+                               (xdrproc_t)xdr_wrapstring, (char *)&pd,
+                               (xdrproc_t)xdr_double, (char *)&saldo);
+
+                printf("Confirmar depósito de: R$ %.2f?\nDigite a senha: ", saldo);
+                scanf("%f", &id);
+
+                sprintf(valor, "confirmadeposito %.1f", id);
+                pd = valor;
+                stat = callrpc(server, VCPROG, VCVERS, VC,
+                               (xdrproc_t)xdr_wrapstring, (char *)&pd,
+                               (xdrproc_t)xdr_double, (char *)&saldo);
+
+                if (saldo > 0.0)
+                {
+                    printf("Ok! O seu dinheiro já tá na conta :)\n");
+                    printf("Deseja realizar outra operaçao?\nSe sim, digite 5. Se deseja sair, digite 4.\n");
+                }
+                else
+                {
+                    printf("Oops... algum erro se deu por aqui\n");
+                    exit(1);
+                }
                 break;
             }
         }
