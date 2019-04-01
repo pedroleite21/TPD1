@@ -10,57 +10,64 @@
 #define NUM_CONTA 100
 
 conta contas[NUM_CONTA];
+token tokenContas[NUM_CONTA];
 
-int verificaContaBD(int _id) 
+int verificaContaBD(int _id)
 {
-	for(int i = 0; i < NUM_CONTA; i++) {
-		if(contas[i].id == _id)
+	for (int i = 0; i < NUM_CONTA; i++)
+	{
+		if (contas[i].id == _id)
 		{
-			return -1;
+			return _id;
 		}
 	}
 
-	return _id;
+	return -1;
 }
 
-int *
-abreconta_1_svc(int *argp, struct svc_req *rqstp)
+int *abreconta_1_svc(int *argp, struct svc_req *rqstp)
 {
 	static int result;
 	int id = *argp;
 
-	if(verificaContaBD(id) == -1 || id == 0 || id= == 999) {
-		result = -1;
-	} else {
+	printf("LOG: Chamada abre conta com id: %d", id);
+	if (verificaContaBD(id) == -1)
+	{
 		contas[id].id = id;
 		contas[id].saldo = 0.0;
-		result = id; 
+		result = id;
+	}
+	else
+	{
+
+		result = -1;
 	}
 
 	return &result;
 }
 
-int *
-fechaconta_1_svc(int *argp, struct svc_req *rqstp)
+int *fechaconta_1_svc(int *argp, struct svc_req *rqstp)
 {
-	static int  result;
-	int id =  *argp;
+	static int result;
+	int id = *argp;
 
-	if(verificaContaBD(id) == -1) {
+	if (verificaContaBD(id) != -1)
+	{
 		contas[id].id = 999;
 		contas[id].saldo = 999;
 		result = 0;
-	} else {
+	}
+	else
+	{
 		result = -1;
 	}
 
 	return &result;
 }
 
-int *
-authconta_1_svc(int *argp, struct svc_req *rqstp)
+int *authconta_1_svc(int *argp, struct svc_req *rqstp)
 {
-	static int  result;
+	static int result;
 	int id = *argp;
 
 	result = verificaContaBD(id);
@@ -68,15 +75,15 @@ authconta_1_svc(int *argp, struct svc_req *rqstp)
 	return &result;
 }
 
-int *
-deposito_1_svc(transacao *argp, struct svc_req *rqstp)
+int *deposito_1_svc(transacao *argp, struct svc_req *rqstp)
 {
-	static int  result;
+	static int result;
 	int id = argp->id;
 	float valor = argp->saldo;
 
 	result = -1;
-	if(verificaContaBD(id) != -1) {
+	if (verificaContaBD(id) != -1)
+	{
 		contas[id].saldo = contas[id].saldo + valor;
 		result = 0;
 	}
@@ -84,15 +91,15 @@ deposito_1_svc(transacao *argp, struct svc_req *rqstp)
 	return &result;
 }
 
-int *
-saque_1_svc(transacao *argp, struct svc_req *rqstp)
+int *saque_1_svc(transacao *argp, struct svc_req *rqstp)
 {
-	static int  result;
+	static int result;
 	int id = argp->id;
 	int valor = argp->saldo;
 
 	result = -1;
-	if(verificaContaBD(id) != -1) {
+	if (verificaContaBD(id) != -1)
+	{
 		contas[id].saldo = contas[id].saldo - valor;
 		result = 0;
 	}
@@ -103,45 +110,62 @@ saque_1_svc(transacao *argp, struct svc_req *rqstp)
 float *
 retornasaldo_1_svc(int *argp, struct svc_req *rqstp)
 {
-	static float  result;
+	static float result;
 	int id = *argp;
 
 	result = -1.0;
-	if(verifica_conta(id) != -1) {
-		result = contas[id].saldo; 
+	if (verificaContaBD(id) != -1)
+	{
+		result = contas[id].saldo;
 	}
 
 	return &result;
 }
 
-int *
-checksenha_1_svc(token *argp, struct svc_req *rqstp)
+int *checksenha_1_svc(token *argp, struct svc_req *rqstp)
 {
-	static int  result;
+	static int result;
+	int id = argp->conta_id;
+	int token = argp->token;
 
-	/*
-	 * insert server code here
-	 */
+	if (token == 0) //primeira senha
+	{
+		tokenContas[id].conta_id = id;
+		tokenContas[id].token = 0;
+		result = 0;
+	}
+	else if (tokenContas[id].token == token) //senha correta
+	{
+		result = 0;
+	}
+	else //senha sem atualizacoes
+	{
+		result = -1;
+	}
 
 	return &result;
 }
 
-int *
-gerasenha_1_svc(token *argp, struct svc_req *rqstp)
+int *gerasenha_1_svc(token *argp, struct svc_req *rqstp)
 {
-	static int  result;
+	static int result;
+	int contaId = argp->conta_id;
 
-	/*
-	 * insert server code here
-	 */
-
+	if (verificaContaBD(contaId) != -1)
+	{
+		tokenContas[contaId].token = tokenContas[contaId].token + 2;
+		result = tokenContas[contaId].token;
+	}
+	else
+	{
+		result = -1;
+	}
 	return &result;
 }
 
-int *
-falhasenha_1_svc(token *argp, struct svc_req *rqstp)
+int *falhasenha_1_svc(token *argp, struct svc_req *rqstp)
 {
-	static int  result;
+	static int result;
 
 	/*
 	 * insert server code here

@@ -8,205 +8,391 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define NUM_CONTA 100
 
 CLIENT *clnt;
-int  *result_1;
-int  abreconta_1_arg;
-int  *result_2;
-int  fechaconta_1_arg;
-int  *result_3;
-int  authconta_1_arg;
-int  *result_4;
-transacao  deposito_1_arg;
-int  *result_5;
-transacao  saque_1_arg;
-float  *result_6;
-int  retornasaldo_1_arg;
-int  *result_7;
-token  checksenha_1_arg;
-int  *result_8;
-token  gerasenha_1_arg;
-int  *result_9;
-token  falhasenha_1_arg;
+int *result_1;
+int abreconta_1_arg;
+int *result_2;
+int fechaconta_1_arg;
+int *result_3;
+int authconta_1_arg;
+int *result_4;
+transacao deposito_1_arg;
+int *result_5;
+transacao saque_1_arg;
+float *result_6;
+int retornasaldo_1_arg;
+int *result_7;
+token checksenha_1_arg;
+int *result_8;
+token gerasenha_1_arg;
+int *result_9;
+token falhasenha_1_arg;
 
-void abrirConta() {
+token tokenContas[NUM_CONTA];
+
+int checarSenha(int conta)
+{
+	tokenContas[conta].conta_id = conta;
+
+	checksenha_1_arg = tokenContas[conta];
+
+	result_7 = checksenha_1(&checksenha_1_arg, clnt);
+	if (result_7 == (int *)NULL)
+	{
+		clnt_perror(clnt, "call failed");
+	}
+
+	return *result_7;
+}
+
+void gerarNovaSenha(int conta)
+{
+	gerasenha_1_arg = tokenContas[conta];
+
+	result_8 = gerasenha_1(&gerasenha_1_arg, clnt);
+	if (result_8 == (int *)NULL)
+	{
+		clnt_perror(clnt, "call failed");
+	}
+	else
+	{
+		if (*result_8 != -1)
+		{
+			tokenContas[conta].token = *result_8;
+		}
+		else
+		{
+			exit(1);
+		}
+	}
+}
+
+void abrirConta()
+{
 	printf("\nInsira um ID:\t");
 	scanf("%d", &abreconta_1_arg);
 
 	result_1 = abreconta_1(&abreconta_1_arg, clnt);
-	if (result_1 == (int *) NULL) {
-		clnt_perror (clnt, "call failed");
-	} else {
-		//Foi!!
+	if (result_1 == (int *)NULL)
+	{
+		clnt_perror(clnt, "call failed");
 	}
-
+	else
+	{
+		if (*result_1 == -1)
+		{
+			printf("\nConta %d não foi aberta, já existe alguém com esse número :(.\n", abreconta_1_arg);
+		}
+		else
+		{
+			printf("\nConta %d foi aberta :).\n", abreconta_1_arg);
+		}
+	}
 }
 
-void fecharConta() {
+void fecharConta()
+{
 	printf("\nInsira um ID:\t");
 	scanf("%d", &fechaconta_1_arg);
 
 	result_2 = fechaconta_1(&fechaconta_1_arg, clnt);
-	if (result_2 == (int *) NULL) {
-		clnt_perror (clnt, "call failed");
+	if (result_2 == (int *)NULL)
+	{
+		clnt_perror(clnt, "call failed");
+	}
+	else
+	{
+		if (*result_2 == -1)
+		{
+			printf("\nNao existe a conta %d, portanto nao pode ser fechada. \n", fechaconta_1_arg);
+		}
+		else
+		{
+			printf("\nA conta %d foi fechada com sucesso. \n", fechaconta_1_arg);
+		}
 	}
 }
 
-void depositoConta() {
-	int id;
-	float valor;
-
-	printf("\nInsira o numero de ID:\t");
-	scanf("%d", &id);
-
-	printf("\nAgora, digite o valor a ser depositado:\t");
-	scanf("%d", &valor);
-
-	deposito_1_arg.id = id;
-	deposito_1_arg.saldo = valor;
-
-	result_4 = deposito_1(&deposito_1_arg, clnt);
-	if (result_4 == (int *) NULL) {
-		clnt_perror (clnt, "call failed");
-	}
-}
-
-void saqueConta() {
-	int id;
-	float valor;
-
-	printf("\nInsira o numero de ID:\t");
-	scanf("%d", &id);
-
-	printf("\nAgora, digite o valor a ser sacado:\t");
-	scanf("%d", &valor);
-
-	saque_1_arg.id = id;
-	saque_1_arg.saldo = valor;
-
-	result_5 = saque_1(&saque_1_arg, clnt);
-	if (result_5 == (int *) NULL) {
-		clnt_perror (clnt, "call failed");
-	}
-}
-
-void getSaldo() {
-	printf("\nInsira o numero de ID:\t");
-	scanf("%d", &retornasaldo_1_arg);
-	
-	result_6 = retornasaldo_1(&retornasaldo_1_arg, clnt);
-	if (result_6 == (float *) NULL) {
-		clnt_perror (clnt, "call failed");
-	}
-}
-
-void checarConta() {
-	printf("\nInsira o numero de ID:\t");
-	scanf("%d", &authconta_1_arg);
-	
-	result_3 = authconta_1(&authconta_1_arg, clnt);
-	if (result_3 == (int *) NULL) {
-		clnt_perror (clnt, "call failed");
-	}
-}
-
-
-void
-banco_prog_1(char *host)
+void depositoConta()
 {
-	int opcao;
-	int operacao;
+	int id;
+	float valor;
 
-#ifndef	DEBUG
-	clnt = clnt_create (host, BANCO_PROG, BANCO_VERS, "udp");
-	if (clnt == NULL) {
-		clnt_pcreateerror (host);
-		exit (1);
+	printf("\nInsira o numero de ID:\t");
+	scanf("%d", &id);
+
+	if (checarSenha(id) == 0)
+	{
+		printf("\nAgora, digite o valor a ser depositado:\t");
+		scanf("%f", &valor);
+
+		deposito_1_arg.id = id;
+		deposito_1_arg.saldo = valor;
+
+		result_4 = deposito_1(&deposito_1_arg, clnt);
+		if (result_4 == (int *)NULL)
+		{
+			clnt_perror(clnt, "call failed");
+		}
+		else
+		{
+			if (*result_4 == -1)
+			{
+				printf("\nO deposito na conta %d nao pôde ser finalizado.\n", id);
+			}
+			else
+			{
+				printf("\nO deposito de R$ %.2f na conta %d foi realizado com sucesso.\n", valor, id);
+			}
+			gerarNovaSenha(id);
+		}
 	}
-#endif	/* DEBUG */
+	else
+	{
+		printf("\n Senha da conta %d expirada \n", id);
+	}
+}
 
-	while(1) {
-		printf("Escolha:\n1 - Agência\t\t 2- Caixa Eletrônico\n")
-		fflush(stdin);
-    	scanf("%d", &opcao);
+void saqueConta()
+{
+	int id;
+	float valor;
 
-		switch(opcao) {
-			case 1: 
-				//Agencia
-				printf("\nQual operação deseja realizar?\n");
-				printf("1 - Abrir conta\t");
-				printf("2 - Fechar conta\n");
-				printf("3 - Autentificação de conta\t");
-				scanf("%d", &operacao);
+	printf("\nInsira o numero de ID:\t");
+	scanf("%d", &id);
 
-				switch(operacao) {
-					case 1:
-						
-						break;
-					case 2:
-						break;
-					case 3:	
-						checarConta();
-						
-						break;
-					default:
-						printf("\nArgumento inválido!!");
-						break;	
-				}
+	if (checarSenha(id) == 0)
+	{
+		printf("\nAgora, digite o valor a ser sacado:\t");
+		scanf("%f", &valor);
 
-				break;
-			case 2: {
-				//Caixa Eletronico
-				printf("\n/*****************************************/\n");
-				printf("/           BEM VINDO AO BANCO            /\n");
-				printf("/*****************************************/\n");
+		saque_1_arg.id = id;
+		saque_1_arg.saldo = valor;
 
-				printf("\nQual operação deseja realizar?\n");
-				scanf("%d", &operacao);
+		result_5 = saque_1(&saque_1_arg, clnt);
+		if (result_5 == (int *)NULL)
+		{
+			clnt_perror(clnt, "call failed");
+		}
+		else
+		{
+			if (*result_5 == -1)
+			{
+				printf("\nO saque da conta %d nao pôde ser finalizado.\n", id);
+			}
+			else
+			{
+				printf("\nO saque de R$ %.2f da conta %d foi realizado com sucesso.\n", valor, id);
+			}
+			gerarNovaSenha(id);
+		}
+	}
+	else
+	{
+		printf("\n Senha da conta %d expirada \n", id);
+	}
+}
 
-				switch(operacao) {
-					default:
-						printf("\nArgumento inválido!!");
-						break;	
-				}
+void getSaldo()
+{
+	printf("\nInsira o numero de ID da conta:\t");
+	scanf("%d", &retornasaldo_1_arg);
 
-				break;
-			default: 
-				printf("\nArgumento inválido!!");
-				break;				
+	if (checarSenha(retornasaldo_1_arg) == 0)
+	{
+		result_6 = retornasaldo_1(&retornasaldo_1_arg, clnt);
+		if (result_6 == (float *)NULL)
+		{
+			clnt_perror(clnt, "call failed");
+		}
+		else
+		{
+			if (*result_6 == -1.0)
+			{
+				printf("\nA conta %d nao existe. \n", retornasaldo_1_arg);
+			}
+			else
+			{
+				printf("\nO saldo da conta %d é de: R$ %.2f \n", retornasaldo_1_arg, *result_6);
+				gerarNovaSenha(retornasaldo_1_arg);
 			}
 		}
 	}
-
-	result_7 = checksenha_1(&checksenha_1_arg, clnt);
-	if (result_7 == (int *) NULL) {
-		clnt_perror (clnt, "call failed");
+	else
+	{
+		printf("\n Senha da conta %d expirada \n", retornasaldo_1_arg);
 	}
-	result_8 = gerasenha_1(&gerasenha_1_arg, clnt);
-	if (result_8 == (int *) NULL) {
-		clnt_perror (clnt, "call failed");
-	}
-	result_9 = falhasenha_1(&falhasenha_1_arg, clnt);
-	if (result_9 == (int *) NULL) {
-		clnt_perror (clnt, "call failed");
-	}
-#ifndef	DEBUG
-	clnt_destroy (clnt);
-#endif	 /* DEBUG */
 }
 
+void checarConta()
+{
+	printf("\nInsira o numero de ID:\t");
+	scanf("%d", &authconta_1_arg);
 
-int
-main (int argc, char *argv[])
+	if (checarSenha(authconta_1_arg) == 0)
+	{
+		result_3 = authconta_1(&authconta_1_arg, clnt);
+		if (result_3 == (int *)NULL)
+		{
+			clnt_perror(clnt, "call failed");
+		}
+		else
+		{
+			if (*result_3 == -1)
+			{
+				printf("A conta %d nao existe. :(\n", authconta_1_arg);
+			}
+			else
+			{
+				printf("A conta %d existe, e pronta pra ser usada :)\n", authconta_1_arg);
+				gerarNovaSenha(authconta_1_arg);
+			}
+			
+		}
+	}
+	else
+	{
+		printf("\n Senha da conta %d expirada \n", authconta_1_arg);
+	}
+}
+
+void banco_prog_1(char *host)
+{
+	int opcao = 0;
+	int operacao = 0;
+
+	checksenha_1_arg.token = 0;
+
+#ifndef DEBUG
+	clnt = clnt_create(host, BANCO_PROG, BANCO_VERS, "udp");
+	if (clnt == NULL)
+	{
+		clnt_pcreateerror(host);
+		exit(1);
+	}
+#endif /* DEBUG */
+
+	while (1)
+	{
+		printf("\nEscolha:\n1 - Agência\t\t 2- Caixa Eletrônico\n");
+		fflush(stdin);
+		scanf("%d", &opcao);
+
+		switch (opcao)
+		{
+		case 1:
+			//Agencia
+			printf("\nQual operação deseja realizar?\n");
+			printf("1 - Abrir uma conta\n");
+			printf("2 - Fechar uma conta\n");
+			printf("3 - Autentificação de uma conta\n");
+			printf("4 - Saldo de uma conta\n");
+			printf("5 - Saque de uma conta\n");
+			printf("6 - Depósito em uma conta\n");
+			scanf("%d", &operacao);
+
+			switch (operacao)
+			{
+			case 1:
+				abrirConta();
+				break;
+			case 2:
+				fecharConta();
+				break;
+			case 3:
+				checarConta();
+				break;
+			case 4:
+				getSaldo();
+				break;
+			case 5:
+				saqueConta();
+				break;
+			case 6:
+				depositoConta();
+				break;
+			default:
+				printf("\nArgumento inválido!!\n");
+				break;
+			}
+
+			break;
+		case 2:
+		{
+			//Caixa Eletronico
+			printf("\n/*****************************************/\n");
+			printf("/           BEM VINDO AO BANCO            /\n");
+			printf("/*****************************************/\n");
+
+			printf("\nQual operação deseja realizar?\n");
+			printf("1 - Saldo da conta\n");
+			printf("2 - Saque da conta\n");
+			printf("3 - Depósito na conta\n");
+			printf("4 - Sair\n\n");
+
+			printf("5 - Saque de uma conta (com falha)\t");
+			printf("6 - Depósito em uma conta (com falha)\n");
+
+			scanf("%d", &operacao);
+
+			switch (operacao)
+			{
+			case 1:
+				getSaldo();
+				break;
+			case 2:
+				saqueConta();
+				break;
+			case 3:
+				depositoConta();
+				break;
+			case 4:
+				exit(1);
+			case 5:
+				break;
+			case 6:
+				break;
+			default:
+				printf("\nArgumento inválido!!\n");
+				break;
+			}
+
+			break;
+		default:
+			printf("\nArgumento inválido!!\n");
+			break;
+		}
+		}
+	}
+
+	result_9 = falhasenha_1(&falhasenha_1_arg, clnt);
+	if (result_9 == (int *)NULL)
+	{
+		clnt_perror(clnt, "call failed");
+	}
+#ifndef DEBUG
+	clnt_destroy(clnt);
+#endif /* DEBUG */
+}
+
+int main(int argc, char *argv[])
 {
 	char *host;
 
-	if (argc < 2) {
-		printf ("usage: %s server_host\n", argv[0]);
-		exit (1);
+	if (argc < 2)
+	{
+		printf("usage: %s server_host\n", argv[0]);
+		exit(1);
 	}
 	host = argv[1];
 
-	banco_prog_1 (host);
-exit (0);
+	for (int i = 0; i < NUM_CONTA; i++)
+	{
+		tokenContas[i].token = 0;
+	}
+
+	banco_prog_1(host);
+	exit(0);
 }
