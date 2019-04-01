@@ -6,7 +6,7 @@ struct conta {
 struct transacao {
     int id;
     float saldo;
-}
+};
 
 struct token {
     int conta_id;
