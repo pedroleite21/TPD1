@@ -6,7 +6,7 @@ struct conta {
 struct transacao {
     int id;
     float saldo;
-}
+};
 
 struct token {
     int conta_id;
@@ -26,5 +26,5 @@ program BANCO_PROG
         int geraSenha (token) = 8;
         int falhaSenha (token) = 9;
     } = 1;
-} = 0x20000000LU;
+} = 0x12345000;
 
