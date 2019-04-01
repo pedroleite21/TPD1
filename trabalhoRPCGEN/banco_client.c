@@ -5,30 +5,35 @@
  */
 
 #include "banco.h"
+#include <stdio.h>
+#include <stdlib.h>
 
+
+CLIENT *clnt;
+int  *result_1;
+int  abreconta_1_arg;
+int  *result_2;
+int  fechaconta_1_arg;
+int  *result_3;
+int  authconta_1_arg;
+int  *result_4;
+transacao  deposito_1_arg;
+int  *result_5;
+transacao  saque_1_arg;
+float  *result_6;
+int  retornasaldo_1_arg;
+int  *result_7;
+token  checksenha_1_arg;
+int  *result_8;
+token  gerasenha_1_arg;
+int  *result_9;
+token  falhasenha_1_arg;
 
 void
 banco_prog_1(char *host)
 {
-	CLIENT *clnt;
-	int  *result_1;
-	int  abreconta_1_arg;
-	int  *result_2;
-	int  fechaconta_1_arg;
-	int  *result_3;
-	int  authconta_1_arg;
-	int  *result_4;
-	transacao  deposito_1_arg;
-	int  *result_5;
-	transacao  saque_1_arg;
-	float  *result_6;
-	int  retornasaldo_1_arg;
-	int  *result_7;
-	token  checksenha_1_arg;
-	int  *result_8;
-	token  gerasenha_1_arg;
-	int  *result_9;
-	token  falhasenha_1_arg;
+	int opcao;
+	int operacao;
 
 #ifndef	DEBUG
 	clnt = clnt_create (host, BANCO_PROG, BANCO_VERS, "udp");
@@ -37,6 +42,46 @@ banco_prog_1(char *host)
 		exit (1);
 	}
 #endif	/* DEBUG */
+
+	while(1) {
+		printf("Escolha:\n1 - Agência\t\t 2- Caixa Eletrônico\n")
+		fflush(stdin);
+    	scanf("%d", &opcao);
+
+		switch(opcao) {
+		case 1: 
+			//Agencia
+			printf("\nQual operação deseja realizar?\n");
+			scanf("%d", &operacao);
+
+			switch(operacao) {
+				default:
+					printf("\nArgumento inválido!!");
+					break;	
+			}
+
+			break;
+		case 2: {
+			//Caixa Eletronico
+			printf("\n/*****************************************/\n");
+			printf("/           BEM VINDO AO BANCO            /\n");
+			printf("/*****************************************/\n");
+
+			printf("\nQual operação deseja realizar?\n");
+			scanf("%d", &operacao);
+
+			switch(operacao) {
+				default:
+					printf("\nArgumento inválido!!");
+					break;	
+			}
+
+			break;
+		default: 
+			printf("\nArgumento inválido!!");
+			break;				
+		}
+	}
 
 	result_1 = abreconta_1(&abreconta_1_arg, clnt);
 	if (result_1 == (int *) NULL) {
@@ -90,6 +135,7 @@ main (int argc, char *argv[])
 		exit (1);
 	}
 	host = argv[1];
+
 	banco_prog_1 (host);
 exit (0);
 }
