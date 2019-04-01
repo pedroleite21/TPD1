@@ -29,6 +29,88 @@ token  gerasenha_1_arg;
 int  *result_9;
 token  falhasenha_1_arg;
 
+void abrirConta() {
+	printf("\nInsira um ID:\t");
+	scanf("%d", &abreconta_1_arg);
+
+	result_1 = abreconta_1(&abreconta_1_arg, clnt);
+	if (result_1 == (int *) NULL) {
+		clnt_perror (clnt, "call failed");
+	} else {
+		//Foi!!
+	}
+
+}
+
+void fecharConta() {
+	printf("\nInsira um ID:\t");
+	scanf("%d", &fechaconta_1_arg);
+
+	result_2 = fechaconta_1(&fechaconta_1_arg, clnt);
+	if (result_2 == (int *) NULL) {
+		clnt_perror (clnt, "call failed");
+	}
+}
+
+void depositoConta() {
+	int id;
+	float valor;
+
+	printf("\nInsira o numero de ID:\t");
+	scanf("%d", &id);
+
+	printf("\nAgora, digite o valor a ser depositado:\t");
+	scanf("%d", &valor);
+
+	deposito_1_arg.id = id;
+	deposito_1_arg.saldo = valor;
+
+	result_4 = deposito_1(&deposito_1_arg, clnt);
+	if (result_4 == (int *) NULL) {
+		clnt_perror (clnt, "call failed");
+	}
+}
+
+void saqueConta() {
+	int id;
+	float valor;
+
+	printf("\nInsira o numero de ID:\t");
+	scanf("%d", &id);
+
+	printf("\nAgora, digite o valor a ser sacado:\t");
+	scanf("%d", &valor);
+
+	saque_1_arg.id = id;
+	saque_1_arg.saldo = valor;
+
+	result_5 = saque_1(&saque_1_arg, clnt);
+	if (result_5 == (int *) NULL) {
+		clnt_perror (clnt, "call failed");
+	}
+}
+
+void getSaldo() {
+	printf("\nInsira o numero de ID:\t");
+	scanf("%d", &retornasaldo_1_arg);
+	
+	result_6 = retornasaldo_1(&retornasaldo_1_arg, clnt);
+	if (result_6 == (float *) NULL) {
+		clnt_perror (clnt, "call failed");
+	}
+}
+
+void checarConta() {
+	printf("\nInsira o numero de ID:\t");
+	scanf("%d", &authconta_1_arg);
+	
+	result_3 = authconta_1(&authconta_1_arg, clnt);
+	if (result_3 == (int *) NULL) {
+		clnt_perror (clnt, "call failed");
+	}
+}
+
+
 void
 banco_prog_1(char *host)
 {
@@ -49,64 +131,53 @@ banco_prog_1(char *host)
     	scanf("%d", &opcao);
 
 		switch(opcao) {
-		case 1: 
-			//Agencia
-			printf("\nQual operação deseja realizar?\n");
-			scanf("%d", &operacao);
+			case 1: 
+				//Agencia
+				printf("\nQual operação deseja realizar?\n");
+				printf("1 - Abrir conta\t");
+				printf("2 - Fechar conta\n");
+				printf("3 - Autentificação de conta\t");
+				scanf("%d", &operacao);
 
-			switch(operacao) {
-				default:
-					printf("\nArgumento inválido!!");
-					break;	
+				switch(operacao) {
+					case 1:
+						
+						break;
+					case 2:
+						break;
+					case 3:	
+						checarConta();
+						
+						break;
+					default:
+						printf("\nArgumento inválido!!");
+						break;	
+				}
+
+				break;
+			case 2: {
+				//Caixa Eletronico
+				printf("\n/*****************************************/\n");
+				printf("/           BEM VINDO AO BANCO            /\n");
+				printf("/*****************************************/\n");
+
+				printf("\nQual operação deseja realizar?\n");
+				scanf("%d", &operacao);
+
+				switch(operacao) {
+					default:
+						printf("\nArgumento inválido!!");
+						break;	
+				}
+
+				break;
+			default: 
+				printf("\nArgumento inválido!!");
+				break;				
 			}
-
-			break;
-		case 2: {
-			//Caixa Eletronico
-			printf("\n/*****************************************/\n");
-			printf("/           BEM VINDO AO BANCO            /\n");
-			printf("/*****************************************/\n");
-
-			printf("\nQual operação deseja realizar?\n");
-			scanf("%d", &operacao);
-
-			switch(operacao) {
-				default:
-					printf("\nArgumento inválido!!");
-					break;	
-			}
-
-			break;
-		default: 
-			printf("\nArgumento inválido!!");
-			break;				
 		}
 	}
 
-	result_1 = abreconta_1(&abreconta_1_arg, clnt);
-	if (result_1 == (int *) NULL) {
-		clnt_perror (clnt, "call failed");
-	}
-	result_2 = fechaconta_1(&fechaconta_1_arg, clnt);
-	if (result_2 == (int *) NULL) {
-		clnt_perror (clnt, "call failed");
-	}
-	result_3 = authconta_1(&authconta_1_arg, clnt);
-	if (result_3 == (int *) NULL) {
-		clnt_perror (clnt, "call failed");
-	}
-	result_4 = deposito_1(&deposito_1_arg, clnt);
-	if (result_4 == (int *) NULL) {
-		clnt_perror (clnt, "call failed");
-	}
-	result_5 = saque_1(&saque_1_arg, clnt);
-	if (result_5 == (int *) NULL) {
-		clnt_perror (clnt, "call failed");
-	}
-	result_6 = retornasaldo_1(&retornasaldo_1_arg, clnt);
-	if (result_6 == (float *) NULL) {
-		clnt_perror (clnt, "call failed");
-	}
 	result_7 = checksenha_1(&checksenha_1_arg, clnt);
 	if (result_7 == (int *) NULL) {
 		clnt_perror (clnt, "call failed");

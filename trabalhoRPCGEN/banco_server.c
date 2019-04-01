@@ -5,15 +5,37 @@
  */
 
 #include "banco.h"
+#include <stdio.h>
+
+#define NUM_CONTA 100
+
+conta contas[NUM_CONTA];
+
+int verificaContaBD(int _id) 
+{
+	for(int i = 0; i < NUM_CONTA; i++) {
+		if(contas[i].id == _id)
+		{
+			return -1;
+		}
+	}
+
+	return _id;
+}
 
 int *
 abreconta_1_svc(int *argp, struct svc_req *rqstp)
 {
-	static int  result;
+	static int result;
+	int id = *argp;
 
-	/*
-	 * insert server code here
-	 */
+	if(verificaContaBD(id) == -1 || id == 0 || id= == 999) {
+		result = -1;
+	} else {
+		contas[id].id = id;
+		contas[id].saldo = 0.0;
+		result = id; 
+	}
 
 	return &result;
 }
@@ -22,10 +44,15 @@ int *
 fechaconta_1_svc(int *argp, struct svc_req *rqstp)
 {
 	static int  result;
+	int id =  *argp;
 
-	/*
-	 * insert server code here
-	 */
+	if(verificaContaBD(id) == -1) {
+		contas[id].id = 999;
+		contas[id].saldo = 999;
+		result = 0;
+	} else {
+		result = -1;
+	}
 
 	return &result;
 }
@@ -34,10 +61,9 @@ int *
 authconta_1_svc(int *argp, struct svc_req *rqstp)
 {
 	static int  result;
+	int id = *argp;
 
-	/*
-	 * insert server code here
-	 */
+	result = verificaContaBD(id);
 
 	return &result;
 }
@@ -46,10 +72,14 @@ int *
 deposito_1_svc(transacao *argp, struct svc_req *rqstp)
 {
 	static int  result;
+	int id = argp->id;
+	float valor = argp->saldo;
 
-	/*
-	 * insert server code here
-	 */
+	result = -1;
+	if(verificaContaBD(id) != -1) {
+		contas[id].saldo = contas[id].saldo + valor;
+		result = 0;
+	}
 
 	return &result;
 }
@@ -58,10 +88,14 @@ int *
 saque_1_svc(transacao *argp, struct svc_req *rqstp)
 {
 	static int  result;
+	int id = argp->id;
+	int valor = argp->saldo;
 
-	/*
-	 * insert server code here
-	 */
+	result = -1;
+	if(verificaContaBD(id) != -1) {
+		contas[id].saldo = contas[id].saldo - valor;
+		result = 0;
+	}
 
 	return &result;
 }
@@ -70,10 +104,12 @@ float *
 retornasaldo_1_svc(int *argp, struct svc_req *rqstp)
 {
 	static float  result;
+	int id = *argp;
 
-	/*
-	 * insert server code here
-	 */
+	result = -1.0;
+	if(verifica_conta(id) != -1) {
+		result = contas[id].saldo; 
+	}
 
 	return &result;
 }
