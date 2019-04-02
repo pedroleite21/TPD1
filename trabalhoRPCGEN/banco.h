@@ -23,6 +23,7 @@ typedef struct conta conta;
 struct transacao {
 	int id;
 	float saldo;
+	int erro;
 };
 typedef struct transacao transacao;
 
@@ -60,9 +61,6 @@ extern  int * checksenha_1_svc(token *, struct svc_req *);
 #define geraSenha 8
 extern  int * gerasenha_1(token *, CLIENT *);
 extern  int * gerasenha_1_svc(token *, struct svc_req *);
-#define falhaSenha 9
-extern  int * falhasenha_1(token *, CLIENT *);
-extern  int * falhasenha_1_svc(token *, struct svc_req *);
 extern int banco_prog_1_freeresult (SVCXPRT *, xdrproc_t, caddr_t);
 
 #else /* K&R C */
@@ -90,9 +88,6 @@ extern  int * checksenha_1_svc();
 #define geraSenha 8
 extern  int * gerasenha_1();
 extern  int * gerasenha_1_svc();
-#define falhaSenha 9
-extern  int * falhasenha_1();
-extern  int * falhasenha_1_svc();
 extern int banco_prog_1_freeresult ();
 #endif /* K&R C */
 

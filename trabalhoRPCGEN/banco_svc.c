@@ -28,7 +28,6 @@ banco_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		int retornasaldo_1_arg;
 		token checksenha_1_arg;
 		token gerasenha_1_arg;
-		token falhasenha_1_arg;
 	} argument;
 	char *result;
 	xdrproc_t _xdr_argument, _xdr_result;
@@ -85,12 +84,6 @@ banco_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		_xdr_argument = (xdrproc_t) xdr_token;
 		_xdr_result = (xdrproc_t) xdr_int;
 		local = (char *(*)(char *, struct svc_req *)) gerasenha_1_svc;
-		break;
-
-	case falhaSenha:
-		_xdr_argument = (xdrproc_t) xdr_token;
-		_xdr_result = (xdrproc_t) xdr_int;
-		local = (char *(*)(char *, struct svc_req *)) falhasenha_1_svc;
 		break;
 
 	default:

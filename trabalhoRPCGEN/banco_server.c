@@ -12,6 +12,10 @@
 conta contas[NUM_CONTA];
 token tokenContas[NUM_CONTA];
 
+int erroglobal = 0;
+int valorglobal = 0;
+int idglobal = 0;
+
 int verificaContaBD(int _id)
 {
 	for (int i = 0; i < NUM_CONTA; i++)
@@ -30,7 +34,6 @@ int *abreconta_1_svc(int *argp, struct svc_req *rqstp)
 	static int result;
 	int id = *argp;
 
-	printf("LOG: Chamada abre conta com id: %d", id);
 	if (verificaContaBD(id) == -1)
 	{
 		contas[id].id = id;
@@ -96,12 +99,32 @@ int *saque_1_svc(transacao *argp, struct svc_req *rqstp)
 	static int result;
 	int id = argp->id;
 	int valor = argp->saldo;
+	int erro = argp->erro;
 
 	result = -1;
 	if (verificaContaBD(id) != -1)
-	{
-		contas[id].saldo = contas[id].saldo - valor;
-		result = 0;
+	{	
+		if(erro == 1 && erroglobal == 1 && valorglobal != valor) erroglobal = 0;
+
+		if(erro == 1 && erroglobal == 0) 
+		{	
+			contas[id].saldo = contas[id].saldo - valor;
+			result = 2;
+			erroglobal = 1;
+			idglobal = id;
+			valorglobal = valor;
+		} 
+		else if(erro == 1 && erroglobal == 1 && idglobal == id && valorglobal == valor) 
+		{	
+			result = 3;
+			erroglobal = 0;
+		}
+		else
+		{
+			contas[id].saldo = contas[id].saldo - valor;
+			result = 0;
+		}
+
 	}
 
 	return &result;
@@ -160,16 +183,5 @@ int *gerasenha_1_svc(token *argp, struct svc_req *rqstp)
 	{
 		result = -1;
 	}
-	return &result;
-}
-
-int *falhasenha_1_svc(token *argp, struct svc_req *rqstp)
-{
-	static int result;
-
-	/*
-	 * insert server code here
-	 */
-
 	return &result;
 }

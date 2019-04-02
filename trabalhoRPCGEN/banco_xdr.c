@@ -26,6 +26,8 @@ xdr_transacao (XDR *xdrs, transacao *objp)
 		 return FALSE;
 	 if (!xdr_float (xdrs, &objp->saldo))
 		 return FALSE;
+	 if (!xdr_int (xdrs, &objp->erro))
+		 return FALSE;
 	return TRUE;
 }
 
