@@ -1,11 +1,12 @@
 #include <stdio.h>
 #include "mpi.h"
 
-main(int argc, char** argv)
+void main(int argc, char** argv)
   {
   int my_rank;       // Identificador deste processo
   int proc_n;        // Numero de processos disparados pelo usuario na linha de comando (np)  
-  int message;       // Buffer para as mensagens                    
+  int message;       // Buffer para as mensagens      
+	int iniciou = 0;
   MPI_Status status; // estrutura que guarda o estado de retorno          
 
 
@@ -15,10 +16,11 @@ main(int argc, char** argv)
   MPI_Comm_size(MPI_COMM_WORLD, &proc_n);  // pega informacao do numero de processos (quantidade total)
 
   // receber da esquerda
-
-  if ( my_rank == 0 ) // sou o primeiro?
-     message = 5;     // sim, sou o primeiro, crio a mensagem sem receber
-  else
+  if ( my_rank == 0 ) { // sou o primeiro?
+			message = 5;
+			iniciou = 1;
+	     
+  } else
      MPI_Recv(&message, 1, MPI_INT, my_rank-1, MPI_ANY_TAG, MPI_COMM_WORLD, &status); // recebo da esquerda
      
   // processo mensagem
@@ -28,10 +30,20 @@ main(int argc, char** argv)
 
   // enviar para a direita
 
-  if ( my_rank == proc_n-1 ) // sou o utlimo?
+  if ( my_rank == proc_n-1 ) { // sou o utlimo?
      printf("Pid: %d, sou o ultimo!\n", my_rank); // mostro mensagem na tela pois sou o ultimo
-  else
+	
+     printf("Enviando pro anel\n");
+
+     MPI_Send(&message, 1, MPI_INT, 0, 1, MPI_COMM_WORLD);
+
+		MPI_Recv(&message, 1, MPI_INT, proc_n-1 , MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+
+		printf("Pid: %d, sou o primeiro ANEL!\n", my_rank);
+
+  } else
      MPI_Send(&message, 1, MPI_INT, my_rank+1, 1, MPI_COMM_WORLD); // envio para a direita
+
 
   MPI_Finalize();
 }
