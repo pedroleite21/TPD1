@@ -3,21 +3,28 @@
 #include <time.h>
 #include "mpi.h"
 
+
+#define true 1
+#define false 0
+
 #define nMaxProcessos 10
+
+#define COMECAELEICAO 1
+#define ELEICAO 2
+#define DESATIVA 3
 
 void main(int argc, char **argv)
 {
    int my_rank; // Identificador deste processo
    int proc_n;  // Numero de processos disparados pelo usuario na linha de comando (np)
-   int message; // Buffer para as mensagens
    int ID_NovaEleicao = 0;
    //int coordenador = 0;
-   int opcao;
+   //int opcao;
 
    //vetor de candidatos de 10 processos
    int candidatos[nMaxProcessos];
-   int eleicao[2];
-   int coordenador[2];
+   //int eleicao[2];
+   //int coordenador[2];
 
    MPI_Status status; // estrutura que guarda o estado de retorno
 
@@ -26,141 +33,156 @@ void main(int argc, char **argv)
    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank); // pega pega o numero do processo atual (rank)
    MPI_Comm_size(MPI_COMM_WORLD, &proc_n);  // pega informacao do numero de processos (quantidade total)
 
+   int message[proc_n];
+   int coordenador;
+   int eleicao = false;
+   int apto = true;
+
    if (proc_n > 10)
    {
       printf("Número de processos inválido");
    }
+   
+   
+   if(my_rank == 0) {
+      //p0
+   
+      while(1) {
+         int opcao;
+         printf("Deseja realizar uma nova eleição? 1 - Sim\n");
+         fflush(0);
+         scanf("%d", &opcao);
 
-   //while ()
-   //{
-      // preenche o anel com a posição dos processos
-      for (int i = 0; i < nMaxProcessos; i++)
-      {
-         candidatos[i] = -1;
-      }
-
-      // receber da esquerda
-      if (my_rank == 0)
-      {
-         // escolher processo que tera falha
-         srand(time(NULL));
-
-         while (ID_NovaEleicao == 0)
-            ID_NovaEleicao = rand() % (proc_n);
-
-         printf("Processo %d falhou \n\n", proc_n - 1);
-         printf("Processo %d faz eleição \n\n", ID_NovaEleicao);
-
-         eleicao[0] = ID_NovaEleicao;
-         eleicao[1] = proc_n - 1;
-
-         //message = ID_Falha;
-
-         MPI_Send(&eleicao, 2, MPI_INT, my_rank + 1, 1, MPI_COMM_WORLD);
-      }
-      else if (my_rank != (proc_n - 1))
-      {
-         MPI_Recv(&eleicao, 2, MPI_INT, my_rank - 1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-         MPI_Send(&eleicao, 2, MPI_INT, my_rank + 1, 1, MPI_COMM_WORLD);
-
-         if (my_rank == eleicao[0])
+         if(opcao == 1) 
          {
-            // esperar receber do ultimo
-            MPI_Recv(&eleicao, 2, MPI_INT, proc_n - 1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-         }
-      }
-      else // ultimo processo
-      {
-         MPI_Recv(&eleicao, 2, MPI_INT, my_rank - 1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+            //escolhe qual o processo vai ser realizado a eleicao
+            srand(time(NULL));
 
-         //envia pro coordenador
-         MPI_Send(&eleicao, 2, MPI_INT, eleicao[0], 1, MPI_COMM_WORLD);
-      }
+            while (ID_NovaEleicao == 0 || ID_NovaEleicao == proc_n - 1)
+               ID_NovaEleicao = rand() % (proc_n);
 
-      if (my_rank == eleicao[0])
-      {
-         //solicitar eleicao
-         candidatos[0] = 1;
+            printf("Sorteio: Processo [%d] faz eleição \n\n", ID_NovaEleicao);
 
-         int i = 1;
-         candidatos[i] = my_rank;
-         candidatos[0] = ++i;
+            //desativar o de maior prioridade
+            MPI_Send(&message, proc_n, MPI_INT, proc_n-1, 3, MPI_COMM_WORLD);
 
-         // printf("[ ");
-         // for (i = 0; i < nMaxProcessos; i++)
-         // {
-         //    printf("%d, ", candidatos[i]);
-         // }
-         // printf("]\n");
+            MPI_Recv(&message, proc_n, MPI_INT, MPI_ANY_SOURCE, 3, MPI_COMM_WORLD, &status);
 
-         //envia mensagem de eleicao
-         MPI_Send(&candidatos, nMaxProcessos, MPI_INT, ((my_rank + 1) % proc_n), 1, MPI_COMM_WORLD);
+            printf("Falha: Processo [%d] falha \n\n", message[0]);
 
-         //printf("[%d] Esperando receber lista de candidatos de [%d].\n", my_rank, (my_rank + proc_n - 1) % proc_n);
+            message[0] = ID_NovaEleicao;
+            message[1] = proc_n-1;
+    
+            MPI_Send(&message, proc_n, MPI_INT, ID_NovaEleicao, 1, MPI_COMM_WORLD);
 
-         MPI_Recv(&candidatos, nMaxProcessos, MPI_INT, (my_rank + proc_n - 1) % proc_n, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+            MPI_Recv(&message, proc_n, MPI_INT, MPI_ANY_SOURCE, 4, MPI_COMM_WORLD, &status);
 
-         printf("Recebido vetor de candidatos\n\n");
+            printf("De volta ao P0 com Coordenador [%d] Eleito\n\n", message[0]);
 
-         // printf("[ ");
-         // for (i = 0; i < candidatos[0]; i++)
-         // {
-         //    printf("%d, ", candidatos[i]);
-         // }
-         // printf("]\n");
-
-         int melhorCandidato = 1;
-         int tam = candidatos[0];
-
-         for (i = 2; i < tam; i++)
-         {
-            if (candidatos[i] > melhorCandidato && candidatos[i] != 0)
-               melhorCandidato = candidatos[i];
-         }
-         printf("Processo %d elegeu o coordenador %d \n\n ", eleicao[0], melhorCandidato);
-
-         coordenador[0] = melhorCandidato;
-         coordenador[1] = 1;
-
-         MPI_Send(&coordenador, 2, MPI_INT, ((my_rank + 1) % proc_n), 1, MPI_COMM_WORLD);
-      }
-      else
-      {
-         MPI_Recv(&candidatos, nMaxProcessos, MPI_INT, (my_rank + proc_n - 1) % proc_n, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-
-         if (my_rank != eleicao[1])
-         {
-            int i = candidatos[0];
-            candidatos[i] = my_rank;
-            candidatos[0] = ++i;
-         }
-
-         MPI_Send(&candidatos, nMaxProcessos, MPI_INT, ((my_rank + 1) % proc_n), 1, MPI_COMM_WORLD);
-
-         MPI_Recv(&coordenador, 2, MPI_INT, (my_rank + proc_n - 1) % proc_n, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+            printf("----------------------------------\n\n");
          
-         int i = coordenador[1];
-         coordenador[1] = ++i;
-
-         if (my_rank != coordenador[0] && my_rank != eleicao[1] && my_rank != 0)
-            printf("Processo %d - Coordernador %d\n", my_rank, coordenador[0]);
-         else if (my_rank == coordenador[0])
-            printf("Processo %d - Ciente da coordenacao\n", my_rank);
-
-         MPI_Send(&coordenador, 2, MPI_INT, ((my_rank + 1) % proc_n), 1, MPI_COMM_WORLD);
+         } else {
+            MPI_Send(&message, proc_n, MPI_INT, 1, 5, MPI_COMM_WORLD);
+            break;
+         }
       }
+   } else {
+      // anel
 
-      if(coordenador[1] == proc_n) {
+      while(1)
+      {
+         MPI_Recv(&message, proc_n, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+
+         if(status.MPI_TAG == 1) 
+         {
+            coordenador = message[0];
+            printf("Processo [%d] comecando eleicao\n", my_rank);
+            eleicao = true;
+
+            for(int i=0; i < proc_n; i++) 
+            {
+                message[i] = -1;
+            }
          
-         printf("%d---------------------------------\n", coordenador[1]);
+            if(apto) message[my_rank - 1] = my_rank;
 
-         // printf("Again? \t");
-         // scanf("%d", opcao);
+            //enviar 
+            if(my_rank == proc_n - 1) {
+               MPI_Send(&message, proc_n, MPI_INT, 1, 2, MPI_COMM_WORLD);
+            } else {
+               MPI_Send(&message, proc_n, MPI_INT, my_rank+1, 2, MPI_COMM_WORLD);
+            }            
+      
+         } else if(status.MPI_TAG == 2) {
+            if(eleicao == true) {
+               int eleito = message[my_rank - 1];
 
-         // printf("%d\n", opcao);
+               printf("Começando a eleicao no Processo [%d]\n", eleito);
+               int x;
+               for(x=0; x< proc_n; x++) {
+                  if(message[x] > eleito) {
+                     eleito = message[x];
+                  }
+               }
+
+               printf("Processo [%d] eleito!\n\n", eleito);
+
+               message[0]= eleito;
+
+               //passa a informacao do eleito para os outros
+
+               if(my_rank == proc_n - 1) {
+                  MPI_Send(&message, proc_n, MPI_INT, 1, 4, MPI_COMM_WORLD);
+               } else {
+                  MPI_Send(&message, proc_n, MPI_INT, my_rank+1, 4, MPI_COMM_WORLD);
+               }
+         
+            } else {
+               if(apto == true) {
+                  message[my_rank - 1] = my_rank;      
+               }
+
+               if(my_rank == proc_n - 1) {
+                  MPI_Send(&message, proc_n, MPI_INT, 1, 2, MPI_COMM_WORLD);
+               } else {
+                  MPI_Send(&message, proc_n, MPI_INT, my_rank+1, 2, MPI_COMM_WORLD);
+               }
+
+            }
+
+         } else if(status.MPI_TAG == 3) {
+            if(apto == true) {
+               message[0] = my_rank;
+
+               MPI_Send(&message, proc_n, MPI_INT, 0, 3, MPI_COMM_WORLD);
+               apto = false;
+            } else {
+               MPI_Send(&message, proc_n, MPI_INT, my_rank-1, 3, MPI_COMM_WORLD);
+            }
+         } else if(status.MPI_TAG == 4) {
+            
+            if(eleicao == true) {
+               MPI_Send(&message, proc_n, MPI_INT, 0, 4, MPI_COMM_WORLD);
+            } else {
+               printf("Processo [%d] reconhece novo Coordenador [%d]\n", my_rank, message[0]);
+               if(my_rank == proc_n - 1) {
+                  MPI_Send(&message, proc_n, MPI_INT, 1, 4, MPI_COMM_WORLD);
+               } else {
+                  MPI_Send(&message, proc_n, MPI_INT, my_rank+1, 4, MPI_COMM_WORLD);
+               }
+            }  
+         } else if(status.MPI_TAG == 5) {
+            printf("Kill Processo [%d]\n", my_rank);
+            
+            if(my_rank != proc_n - 1) {
+               MPI_Send(&message, proc_n, MPI_INT, my_rank+1, 5, MPI_COMM_WORLD);
+            }
+            break;
+         }
       }
 
-   //}
+      
+   }
 
    MPI_Finalize();
 }
