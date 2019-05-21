@@ -4,6 +4,11 @@
 #define DEBUG 1            // comentar esta linha quando for medir tempo
 #define ARRAY_SIZE 40      // trabalho final com o valores 10.000, 100.000, 1.000.000
 
+int cmpfunc (const void * a, const void * b) {
+   return ( *(int*)a - *(int*)b );
+}
+
+
 void bs(int n, int * vetor)
 {
     int c=0, d, troca, trocou =1;
@@ -38,7 +43,9 @@ int main()
         printf("[%03d] ", vetor[i]);
     #endif
 
-    bs(ARRAY_SIZE, vetor);                     /* sort array */
+	qsort(vetor, ARRAY_SIZE, sizeof(int), cmpfunc);  /* quicksort */
+
+    //bs(ARRAY_SIZE, vetor);                     /* sort array */
 
 
     #ifdef DEBUG
