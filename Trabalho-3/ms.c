@@ -9,9 +9,23 @@
 #define TRABALHO 1
 #define KILL 2
 
+#define TRUE 1
+#define FALSE 0
+
 int cmpfunc(const void *a, const void *b)
 {
     return (*(int *)a - *(int *)b);
+}
+
+int control_empty(int tam, int *control)
+{
+    int i;
+    for (i = 0; i < tam; i++)
+    {
+        if (control[i] != 0)
+            return FALSE;
+    }
+    return TRUE;
 }
 
 int main(int argc, char **argv)
@@ -45,7 +59,7 @@ int main(int argc, char **argv)
         // MESTRE
         t_inicial = MPI_Wtime();
 
-        //ENVIA PRIMEIRAS TAREFAS
+        //ENVIA TAREFAS
         for (i = 1; i < proc_n; i++)
         {
             proc_control[i - 1] = i;
@@ -53,32 +67,49 @@ int main(int argc, char **argv)
             printf("[Mestre] : Enviando tarefa para [%d]\n", i);
         }
 
-        tarefa = (proc_n - 1) - 1;
-        while (++tarefa < 1)
+        
+        while (control_empty(proc_n - 1, proc_control) == FALSE) // enquanto todas as tarefas enviadas nao voltarem
         {
+            // RECEBE DE QUEM FICOU PRONTO PRIMEIRO
             MPI_Probe(MPI_ANY_SOURCE, TRABALHO, MPI_COMM_WORLD, &status);
             position = proc_control[status.MPI_SOURCE - 1];
-            MPI_Recv(saco[position], c, MPI_INT, MPI_ANY_SOURCE, TRABALHO, MPI_COMM_WORLD, &status);
 
+            MPI_Recv(saco[position], c, MPI_INT, MPI_ANY_SOURCE, TRABALHO, MPI_COMM_WORLD, &status);
             printf("[Mestre] : Recebi tarefa completa de [%d]\n", position);
 
-            proc_control[status.MPI_SOURCE - 1] = tarefa;
-            MPI_Send(saco[tarefa], c, MPI_INT, status.MPI_SOURCE, TRABALHO, MPI_COMM_WORLD);
+            proc_control[status.MPI_SOURCE - 1] = 0;
 
-            printf("[Mestre] : Enviando nova tarefa para [%d]\n", status.MPI_SOURCE);
+            MPI_Send(saco[0], c, MPI_INT, position, KILL, MPI_COMM_WORLD);
         }
 
-        for (i = 0; i < proc_n - 1; i++)
-        {
-            if (proc_control[i] != 0)
-            {
-                position = proc_control[i];
-                MPI_Recv(saco[position], c, MPI_INT, i + 1, TRABALHO, MPI_COMM_WORLD, &status);
-                proc_control[i] = 0;
-            }
-            MPI_Send(saco[0], c, MPI_INT, i + 1, KILL, MPI_COMM_WORLD);
-        }
-        
+        // versao 2
+
+        // tarefa = (proc_n - 1) - 1;
+        // while (++tarefa < 1)
+        // {
+        //     MPI_Probe(MPI_ANY_SOURCE, TRABALHO, MPI_COMM_WORLD, &status);
+        //     position = proc_control[status.MPI_SOURCE - 1];
+        //     MPI_Recv(saco[position], c, MPI_INT, MPI_ANY_SOURCE, TRABALHO, MPI_COMM_WORLD, &status);
+
+        //     printf("[Mestre] : Recebi tarefa completa de [%d]\n", position);
+
+        //     proc_control[status.MPI_SOURCE - 1] = tarefa;
+        //     MPI_Send(saco[tarefa], c, MPI_INT, status.MPI_SOURCE, TRABALHO, MPI_COMM_WORLD);
+
+        //     printf("[Mestre] : Enviando nova tarefa para [%d]\n", status.MPI_SOURCE);
+        // }
+
+        // for (i = 0; i < proc_n - 1; i++)
+        // {
+        //     if (proc_control[i] != 0)
+        //     {
+        //         position = proc_control[i];
+        //         MPI_Recv(saco[position], c, MPI_INT, i + 1, TRABALHO, MPI_COMM_WORLD, &status);
+        //         proc_control[i] = 0;
+        //     }
+        //     MPI_Send(saco[0], c, MPI_INT, i + 1, KILL, MPI_COMM_WORLD);
+        // }
+
         t_final = MPI_Wtime();
         printf("[Mestre] : Tempo decorrido %.4f\n", t_final - t_inicial);
     }
