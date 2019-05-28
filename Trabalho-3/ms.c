@@ -17,6 +17,25 @@ int cmpfunc(const void *a, const void *b)
     return (*(int *)a - *(int *)b);
 }
 
+void bs(int n, int * vetor)
+{
+    int c=0, d, troca, trocou =1;
+
+    while (c < (n-1) & trocou )
+        {
+        trocou = 0;
+        for (d = 0 ; d < n - c - 1; d++)
+            if (vetor[d] > vetor[d+1])
+                {
+                troca      = vetor[d];
+                vetor[d]   = vetor[d+1];
+                vetor[d+1] = troca;
+                trocou = 1;
+                }
+        c++;
+        }
+}
+
 int control_empty(int tam, int *control)
 {
     int i;
@@ -53,8 +72,9 @@ int main(int argc, char **argv)
     proc_control = calloc(proc_n - 1, sizeof *proc_control);
 
     int task, position;
+    int received = M;
 
-    if (my_rank == 0)
+        if (my_rank == 0)
     {
         // MESTRE
         t_inicial = MPI_Wtime();
@@ -68,7 +88,7 @@ int main(int argc, char **argv)
             printf("[Mestre] : Enviando tarefa %d para [%d]\n", task, i);
         }
 
-        while (control_empty(proc_n - 1, proc_control) == FALSE) // enquanto todas as tarefas enviadas nao voltarem
+        while (received > 0) // enquanto todas as tarefas forem recebidos
         {
             // RECEBE DE QUEM FICOU PRONTO PRIMEIRO
             MPI_Probe(MPI_ANY_SOURCE, TRABALHO, MPI_COMM_WORLD, &status);
@@ -77,32 +97,18 @@ int main(int argc, char **argv)
             MPI_Recv(saco[position], c, MPI_INT, MPI_ANY_SOURCE, TRABALHO, MPI_COMM_WORLD, &status);
             printf("[Mestre] : Recebi tarefa completa de [%d]\n", status.MPI_SOURCE);
             proc_control[status.MPI_SOURCE - 1] = 0;
+            received--;
 
-            if (task < M)
-            {
+            if(task < M) { // se tiverem tarefas remanescentes envio
                 proc_control[status.MPI_SOURCE - 1] = task;
                 MPI_Send(saco[task], c, MPI_INT, status.MPI_SOURCE, TRABALHO, MPI_COMM_WORLD);
 
                 printf("[Mestre] : Enviando nova tarefa %d para [%d]\n", task, status.MPI_SOURCE);
 
                 task++;
+            } else { // se nao tiverem tarefas remanescentes dou um kill
+                MPI_Send(saco[0], c, MPI_INT, status.MPI_SOURCE, KILL, MPI_COMM_WORLD);
             }
-            else
-            {
-                break;
-            }
-        }
-
-        //ULTIMO ROUND
-        for (i = 0; i < proc_n - 1; i++)
-        {
-            if (proc_control[i] != 0)
-            {
-                position = proc_control[i];
-                MPI_Recv(saco[position], c, MPI_INT, i + 1, TRABALHO, MPI_COMM_WORLD, &status);
-                proc_control[i] = 0;
-            }
-            MPI_Send(saco[0], c, MPI_INT, i + 1, KILL, MPI_COMM_WORLD);
         }
 
         t_final = MPI_Wtime();
@@ -119,6 +125,7 @@ int main(int argc, char **argv)
             {
                 printf("[%d] : Recebendo tarefa\n", my_rank);
                 qsort(message, c, sizeof(int), cmpfunc); // quicksort
+                //bs(c, message);
                 MPI_Send(message, c, MPI_INT, 0, TRABALHO, MPI_COMM_WORLD);
             }
             else if (status.MPI_TAG == KILL)
