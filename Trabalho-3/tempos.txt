@@ -1,0 +1,30 @@
+Bubble sort ->
+
+2 processos -  448.2666
+4 processos -  150.4333
+6 processos -  90.0326
+8 processos -  64.4258
+10 processos - 51.8100
+12 processos - 43.1432
+14 processos - 36.5288
+16 processos - 31.6832
+18 processos - 31.7222
+32 processos - 30.4975
+
+Quicksort ->
+
+2 processos -  11.8559
+4 processos -  3.0591
+6 processos -  1.8823
+8 processos -  2.1243
+10 processos -  1.8385
+12 processos - 1.7985
+14 processos - 1.8730
+16 processos - 1.8648
+18 processos - 1.7287
+32 processos - 2.1402
+
+Sequencial  Quicksort -> 4.364979 s
+
+
+Sequencial  Bubblesort -> 260.569099 s
