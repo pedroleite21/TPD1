@@ -7,23 +7,44 @@
 
 #define TRABALHO 1
 
-void bs(int n, int * vetor)
+void bs(int n, int *vetor)
 {
-    int c=0, d, troca, trocou =1;
+    int c = 0, d, troca, trocou = 1;
 
-    while (c < (n-1) & trocou )
-        {
+    while (c < (n - 1) & trocou)
+    {
         trocou = 0;
-        for (d = 0 ; d < n - c - 1; d++)
-            if (vetor[d] > vetor[d+1])
-                {
-                troca      = vetor[d];
-                vetor[d]   = vetor[d+1];
-                vetor[d+1] = troca;
+        for (d = 0; d < n - c - 1; d++)
+            if (vetor[d] > vetor[d + 1])
+            {
+                troca = vetor[d];
+                vetor[d] = vetor[d + 1];
+                vetor[d + 1] = troca;
                 trocou = 1;
-                }
+            }
         c++;
-        }
+    }
+}
+
+int *interleaving(int vetor[], int tam)
+{
+    int *vetor_auxiliar;
+    int i1, i2, i_aux;
+
+    vetor_auxiliar = (int *)malloc(sizeof(int) * tam);
+
+    i1 = 0;
+    i2 = tam / 2;
+
+    for (i_aux = 0; i_aux < tam; i_aux++)
+    {
+        if (((vetor[i1] <= vetor[i2]) && (i1 < (tam / 2))) || (i2 == tam))
+            vetor_auxiliar[i_aux] = vetor[i1++];
+        else
+            vetor_auxiliar[i_aux] = vetor[i2++];
+    }
+
+    return vetor_auxiliar;
 }
 
 int main(int argc, char **argv)
@@ -32,14 +53,13 @@ int main(int argc, char **argv)
     int i, j;
     int l = TAM_SACO, c = VETOR_SIZE;
     int proc_n, count;
-    int filhoe, filhod;
+    int filhoe, filhod, pai;
     int delta;
+
     MPI_Status status;
 
     c = atoi(argv[1]);
     delta = atoi(argv[2]);
-
-    int(*saco)[TAM_SACO] = malloc(TAM_SACO * sizeof *saco);
     int(*message) = malloc(c * sizeof(int));
 
     MPI_Init(&argc, &argv);
@@ -49,45 +69,66 @@ int main(int argc, char **argv)
 
     if (my_rank == 0) //  RAIZ
     {
-        // inicializar o saco
-        //for (i = 0; i < l; i++)
-            for (j = 0; j < c; j++)
-                message[j] = c - j;
-        //message = saco[0];
+        for (j = 0; j < c; j++)
+            message[j] = c - j; 
+        count = c;
     }
     else
     {
         // recebe
-        MPI_Recv(message, c, MPI_INT, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        MPI_Recv(message, c, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
         MPI_Get_count(&status, MPI_INT, &count);
 
-        printf("[%d] - %d\n", my_rank, count);
+        pai = status.MPI_SOURCE;
+
+        printf("[%d]: Recebi vetor do pai [%d] - tam: %d\n", my_rank, pai, count);
+
+        for (j = 0; j < count; j++) 
+            printf("%d ", message[j]);
+        printf("\n");
     }
 
     //dividir ou conquistar?
-    if (c <= delta)
-    {   //conquisto
-        bs(c, message);
+    if (count <= delta)
+    { //conquisto
+        bs(count, message);
+        printf("[%d]: Ordenando vetor\n", my_rank);
     }
     else
-    {   //divido
+    { //divido
+        printf("[%d]: Dividindo...\n", my_rank);
         //filho esquerda
         filhoe = my_rank * 2 + 1;
-        MPI_Send(&message[0], c/2, MPI_INT, filhoe, TRABALHO, MPI_COMM_WORLD);
-
+        MPI_Send(&message[0], count / 2, MPI_INT, filhoe, TRABALHO, MPI_COMM_WORLD);
+        printf("[%d]: Mandando pra filho esquerdo [%d]...\n", my_rank, filhoe);
         //filho direita
         filhod = my_rank * 2 + 2;
-        MPI_Send(&message[c/2], c/2, MPI_INT, filhod, TRABALHO, MPI_COMM_WORLD);
-    
+        MPI_Send(&message[count / 2], count / 2, MPI_INT, filhod, TRABALHO, MPI_COMM_WORLD);
+        printf("[%d]: Mandando pra filho direito [%d]...\n", my_rank, filhod);
+
         MPI_Recv(&message[0], c, MPI_INT, filhoe, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-        //MPI_Recv(&message[0], c, MPI_INT, filhoe, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-   
+        MPI_Recv(&message[count / 2], c, MPI_INT, filhod, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+
+        printf("[%d]: intercalando vetor\n", my_rank);
+        message = interleaving(message, c);
+    }
+
+    if (my_rank != 0)
+    {
+        printf("[%d]: Enviando vetor para %d - tam: %d\n", my_rank, pai, count);
+        MPI_Send(message, count, MPI_INT, pai, TRABALHO, MPI_COMM_WORLD);
+    }
+    else
+    {
+        
+        for (j = 0; j < c; j++) 
+            printf("%d ", message[j]);
+        //printf("[%d]: Vetor ordenado: %d - %d\n", my_rank, message[0], message[c-2]);
+        printf("\n");
     }
 
     MPI_Finalize();
-    free(saco);
     free(message);
-
     return 0;
 }
