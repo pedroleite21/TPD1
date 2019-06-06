@@ -83,10 +83,6 @@ int main(int argc, char **argv)
         pai = status.MPI_SOURCE;
 
         printf("[%d]: Recebi vetor do pai [%d] - tam: %d\n", my_rank, pai, count);
-
-        for (j = 0; j < count; j++) 
-            printf("%d ", message[j]);
-        printf("\n");
     }
 
     //dividir ou conquistar?
@@ -94,6 +90,9 @@ int main(int argc, char **argv)
     { //conquisto
         bs(count, message);
         printf("[%d]: Ordenando vetor\n", my_rank);
+        for (j = 0; j < count; j++) 
+            printf("%d ", message[j]);
+        printf("\n");
     }
     else
     { //divido
@@ -108,7 +107,7 @@ int main(int argc, char **argv)
         printf("[%d]: Mandando pra filho direito [%d]...\n", my_rank, filhod);
 
         MPI_Recv(&message[0], c, MPI_INT, filhoe, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-        MPI_Recv(&message[count / 2], c, MPI_INT, filhod, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        MPI_Recv(&message[c/2], c, MPI_INT, filhod, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
         printf("[%d]: intercalando vetor\n", my_rank);
         message = interleaving(message, c);
