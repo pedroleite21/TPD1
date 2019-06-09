@@ -55,7 +55,7 @@ int main(int argc, char **argv)
     int proc_n, count;
     int filhoe, filhod, pai;
     int delta;
-
+    double t_inicial, t_final;
     MPI_Status status;
 
     c = atoi(argv[1]);
@@ -72,6 +72,8 @@ int main(int argc, char **argv)
         for (j = 0; j < c; j++)
             message[j] = c - j; 
         count = c;
+        
+        t_inicial =  MPI_Wtime();
     }
     else
     {
@@ -90,9 +92,6 @@ int main(int argc, char **argv)
     { //conquisto
         bs(count, message);
         printf("[%d]: Ordenando vetor\n", my_rank);
-        for (j = 0; j < count; j++) 
-            printf("%d ", message[j]);
-        printf("\n");
     }
     else
     { //divido
@@ -106,11 +105,11 @@ int main(int argc, char **argv)
         MPI_Send(&message[count / 2], count / 2, MPI_INT, filhod, TRABALHO, MPI_COMM_WORLD);
         printf("[%d]: Mandando pra filho direito [%d]...\n", my_rank, filhod);
 
-        MPI_Recv(&message[0], c, MPI_INT, filhoe, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-        MPI_Recv(&message[c/2], c, MPI_INT, filhod, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        MPI_Recv(&message[0], count, MPI_INT, filhoe, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        MPI_Recv(&message[count/2], count, MPI_INT, filhod, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
         printf("[%d]: intercalando vetor\n", my_rank);
-        message = interleaving(message, c);
+        message = interleaving(message, count);
     }
 
     if (my_rank != 0)
@@ -120,10 +119,9 @@ int main(int argc, char **argv)
     }
     else
     {
-        
-        for (j = 0; j < c; j++) 
-            printf("%d ", message[j]);
-        //printf("[%d]: Vetor ordenado: %d - %d\n", my_rank, message[0], message[c-2]);
+        t_final = MPI_Wtime();
+        printf("[%d]: Tempo decorrido %.6f\n", my_rank, (t_final - t_inicial));
+        printf("[%d]: Vetor ordenado: %d - %d\n", my_rank, message[0], message[c-1]);
         printf("\n");
     }
 
