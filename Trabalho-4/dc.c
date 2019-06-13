@@ -7,6 +7,11 @@
 
 #define TRABALHO 1
 
+int cmpfunc(const void *a, const void *b)
+{
+    return (*(int *)a - *(int *)b);
+}
+
 void bs(int n, int *vetor)
 {
     int c = 0, d, troca, trocou = 1;
@@ -55,11 +60,12 @@ int main(int argc, char **argv)
     int proc_n, count;
     int filhoe, filhod, pai;
     int delta;
-    double t_inicial, t_final;
+    double tempo_inicial, tempo_final;
     MPI_Status status;
 
     c = atoi(argv[1]);
     delta = atoi(argv[2]);
+
     int(*message) = malloc(c * sizeof(int));
 
     MPI_Init(&argc, &argv);
@@ -70,10 +76,10 @@ int main(int argc, char **argv)
     if (my_rank == 0) //  RAIZ
     {
         for (j = 0; j < c; j++)
-            message[j] = c - j; 
+            message[j] = c - j;
         count = c;
-        
-        t_inicial =  MPI_Wtime();
+
+        tempo_inicial = MPI_Wtime();
     }
     else
     {
@@ -89,9 +95,15 @@ int main(int argc, char **argv)
 
     //dividir ou conquistar?
     if (count <= delta)
-    { //conquisto
-        bs(count, message);
+    {   //conquisto
+        // bs(count, message);
+
         printf("[%d]: Ordenando vetor\n", my_rank);
+        bs(count, message);
+        //      qsort(message, count, sizeof(int), cmpfunc);
+        //  for (j = 0; j < count; j++)
+        //    printf("%d ", message[j]);
+        // printf("\n");
     }
     else
     { //divido
@@ -104,9 +116,8 @@ int main(int argc, char **argv)
         filhod = my_rank * 2 + 2;
         MPI_Send(&message[count / 2], count / 2, MPI_INT, filhod, TRABALHO, MPI_COMM_WORLD);
         printf("[%d]: Mandando pra filho direito [%d]...\n", my_rank, filhod);
-
         MPI_Recv(&message[0], count, MPI_INT, filhoe, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
-        MPI_Recv(&message[count/2], count, MPI_INT, filhod, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        MPI_Recv(&message[count / 2], count, MPI_INT, filhod, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
         printf("[%d]: intercalando vetor\n", my_rank);
         message = interleaving(message, count);
@@ -119,9 +130,12 @@ int main(int argc, char **argv)
     }
     else
     {
-        t_final = MPI_Wtime();
-        printf("[%d]: Tempo decorrido %.6f\n", my_rank, (t_final - t_inicial));
-        printf("[%d]: Vetor ordenado: %d - %d\n", my_rank, message[0], message[c-1]);
+        tempo_final = MPI_Wtime();
+        printf("[%d] : Duracao da tarefa %.6f\n", my_rank, (tempo_final - tempo_inicial));
+
+        // for (j = 0; j < c; j++)
+        // printf("%d ", message[j]);
+        printf("[%d]: Vetor ordenado: %d - %d\n", my_rank, message[0], message[c - 1]);
         printf("\n");
     }
 
