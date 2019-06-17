@@ -8,7 +8,7 @@
 #define ARRAY_SIZE 100000 // trabalho final com o valores 10.000, 100.000, 1.000.000
 
 #define M 1000
-#define N 10000
+#define N 1000000
 
 int cmpfunc(const void *a, const void *b)
 {
@@ -36,19 +36,22 @@ void bs(int n, int *vetor)
 
 int main()
 {
-    int vetor[ARRAY_SIZE];
+    //int vetor[ARRAY_SIZE];
     int i, j;
 
     int l = M, c = N;
-    int(*saco)[c] = malloc(l * sizeof *saco);
+    //int(*saco)[c] = malloc(l * sizeof *saco);
+    int(*vetor) = malloc(c * sizeof(int));
 
     clock_t begin = clock();
     double time_spent;
     clock_t end;
 
-    for (i = 0; i < l; i++)
-        for (j = 0; j < c; j++)
-            saco[i][j] = c - j;
+    //for (i = 0; i < l; i++)
+    //for (j = 0; j < c; j++)
+    //saco[i][j] = c - j;
+    for (j = 0; j < c; j++)
+        vetor[j] = c - j;
 
     // #ifdef DEBUG
     //     printf("\nVetor: ");
@@ -56,10 +59,11 @@ int main()
     //         printf("[%03d] ", vetor[i]);
     // #endif
 
-    for(i=0;i<l;i++){
-        //qsort(saco[i], c, sizeof(int), cmpfunc);
-		bs(c, saco[i]);
-    }
+    //for (i = 0; i < l; i++)
+   // {
+        //qsort(vetor, c, sizeof(int), cmpfunc);
+        bs(c, vetor);
+    //}
 
     // #ifdef DEBUG
     //     printf("\nVetor: ");
@@ -71,7 +75,7 @@ int main()
     time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
     printf("Tempo de execucao: %f seconds\n", time_spent);
 
-    free(saco);
+    free(vetor);
 
     return 0;
 }

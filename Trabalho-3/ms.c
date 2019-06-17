@@ -4,7 +4,7 @@
 #include "mpi.h"
 
 #define M 1000
-#define N 100000
+#define N 1000000
 
 #define TRABALHO 1
 #define KILL 2
@@ -60,9 +60,10 @@ int main(int argc, char **argv)
     int(*message) = malloc(c * sizeof(int));
     int *proc_control;
 
-    for (i = 0; i < l; i++)
+    //for (i = 0; i < l; i++)
         for (j = 0; j < c; j++)
-            saco[i][j] = c - j;
+            message[j] = c - j;
+            //saco[i][j] = c - j;
 
     MPI_Init(&argc, &argv); // funcao que inicializa o MPI, todo o codigo paralelo estah abaixo
 
