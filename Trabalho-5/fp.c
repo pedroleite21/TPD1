@@ -2,8 +2,7 @@
 #include <stdlib.h>
 #include "mpi.h"
 
-#define VETOR_SIZE 1000000
-#define TAM_TROCA ((int)(0.01 * VETOR_SIZE) // 1% do vetor é pra troca
+#define VETOR_SIZE 2000
 #define TRABALHO 1
 
 #define TRUE 1
@@ -38,6 +37,16 @@ int verifica_processos(int *v, int tam)
     return TRUE;
 }
 
+int verifica_ordenacao(int *v, int tam)
+{
+	int i;
+	for(i = 0; i < tam - 1; i++) 
+		if(v[i] >= v[i + 1])
+			return FALSE;
+
+	return TRUE;
+}
+
 int main(int argc, char **argv)
 {
     int my_rank;
@@ -46,6 +55,7 @@ int main(int argc, char **argv)
     int proc_n, count;
     int pronto = FALSE;
     int tam_vetor;
+    int troca;
     int comp;
     double t_inicial, t_final;
     MPI_Status status;
@@ -57,9 +67,12 @@ int main(int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &proc_n);
 
     tam_vetor = VETOR_SIZE / proc_n;
+	troca = (int)(0.01 * VETOR_SIZE);
 
-    int vparte[tam_vetor + TAM_TROCA];
-    
+    int vparte[(tam_vetor + troca)];
+
+	if(my_rank == 0) t_inicial = MPI_Wtime();    
+
     for (i = 0; i < tam_vetor; i++)
         vparte[i] = VETOR_SIZE - tam_vetor * my_rank - i;
 
@@ -70,27 +83,27 @@ int main(int argc, char **argv)
 
     pronto = FALSE;
 
-    while (PRONTO == FALSE)
+    while (pronto == FALSE)
     {
         bs(tam_vetor, vparte);
 
-        if (my_rank == proc_n - 1)
+        if (my_rank != proc_n - 1)
         {
-            MPI_Send(&vparte[tam_vetor - 1], 1, MPI_INT, my_rank + 1, TRABALHO, MPI_COMM_WORLD);
+           MPI_Send(&vparte[tam_vetor - 1], 1, MPI_INT, my_rank + 1, TRABALHO, MPI_COMM_WORLD);
         }
 
         if (my_rank != 0)
         {
-            MPI_Recv(&comp, 1, MPI_INT, my_rank - 1, MPI_ANY_TAG, TRABALHO, &status);
+            MPI_Recv(&comp, 1, MPI_INT, my_rank - 1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
-            if (&vparte[tam_vetor - 1] > comp)
+            if (vparte[tam_vetor - 1] > comp)
             {
                 // ok vetor maior
                 proc_pronto[my_rank] = 1;
             }
         }
 
-        for (i = 0; i < proc_n : i++)
+        for (i = 0; i < proc_n; i++)
         {
             MPI_Bcast(&proc_pronto[i], 1, MPI_INT, i, MPI_COMM_WORLD);
         }
@@ -101,25 +114,34 @@ int main(int argc, char **argv)
         // TROCO VALORES PARA CONVERGIR
         if (my_rank != 0)
         {
-            MPI_Send(&vparte[0], TAM_TROCA, MPI_INT, my_rank - 1, TRABALHO, MPI_COMM_WORLD);
+            MPI_Send(&vparte[0], troca, MPI_INT, my_rank - 1, TRABALHO, MPI_COMM_WORLD);
         }
         
         if (my_rank != proc_n - 1)
         {
-            MPI_Recv(&vparte[tam_vetor], TAM_TROCA, MPI_INT, my_rank + 1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+            MPI_Recv(&vparte[tam_vetor], troca, MPI_INT, my_rank + 1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
-            bs(2*TAM_TROCA, vparte[tam_vetor - TAM_TROCA]);
+            bs(2*troca, &vparte[tam_vetor - troca]);
 
-            MPI_Send(&vparte[tam_vetor], TAM_TROCA, MPI_INT, my_rank + 1, TRABALHO, MPI_COMM_WORLD);
+            MPI_Send(&vparte[tam_vetor], troca, MPI_INT, my_rank + 1, TRABALHO, MPI_COMM_WORLD);
         }
 
         if(my_rank != 0)
         {
-            MPI_Recv(&vparte[0], TAM_TROCA, MPI_INT, my_rank - 1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+            MPI_Recv(&vparte[0], troca, MPI_INT, my_rank - 1, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
         }
     }
+	
+	if(my_rank == 0)
+	{
+		t_final = MPI_Wtime();
 
-    printf("PROCESSO: %d, first: %d, last: %d\n", my_rank, vparte[0], vparte[tam_vetor-1]);
+		printf("Tempo decorrido: %f\n", t_final - t_inicial);
+	}
+	
+	//int ordenado = verifica_ordenacao(vparte, tam_vetor);
+
+    //printf("PROCESSO: %d, first: %d, last: %d, ordenado: %d \n", my_rank, vparte[0], vparte[tam_vetor-1], ordenado);
 
     MPI_Finalize();
 
